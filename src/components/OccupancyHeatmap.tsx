@@ -62,45 +62,34 @@ const mockHeatmapData = [
 
 const timeLabels = ['Morning\n(6AM-12PM)', 'Afternoon\n(12PM-6PM)', 'Evening\n(6PM-12AM)'];
 
-export const OccupancyHeatmap: React.FC = () => {
+interface OccupancyHeatmapProps {
+  data?: number[][];
+}
+
+export const OccupancyHeatmap: React.FC<OccupancyHeatmapProps> = ({ data }) => {
+  // Convert numeric data to proper format if provided, otherwise use mock data
+  const displayData = data ? 
+    data.map((row, rowIndex) => 
+      row.map((value, colIndex) => ({
+        label: `Zone ${colIndex + 1}`,
+        value: Math.round(value)
+      }))
+    ) : mockHeatmapData;
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h4 className="font-medium">Space Utilization by Time Period</h4>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>Low</span>
-          <div className="flex gap-1">
-            {[10, 25, 50, 75, 100].map((intensity) => (
-              <div
-                key={intensity}
-                className={`w-3 h-3 rounded-sm bg-primary/${intensity === 100 ? '' : intensity}`}
-                style={{ 
-                  backgroundColor: intensity === 100 ? 'hsl(var(--primary))' : `hsl(var(--primary) / 0.${intensity})` 
-                }}
-              />
-            ))}
-          </div>
-          <span>High</span>
-        </div>
-      </div>
-      
-      <div className="space-y-4">
-        {mockHeatmapData.map((period, periodIndex) => (
-          <div key={periodIndex}>
-            <h5 className="text-sm font-medium mb-2 text-muted-foreground">
-              {timeLabels[periodIndex]}
-            </h5>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {period.map((zone, zoneIndex) => (
-                <HeatmapCell
-                  key={zoneIndex}
-                  value={zone.value}
-                  label={zone.label}
-                  maxValue={100}
-                />
-              ))}
-            </div>
-          </div>
+    <div className="space-y-2">
+      <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${displayData[0]?.length || 5}, 1fr)` }}>
+        {displayData[0]?.map((cell, index) => (
+          <div
+            key={index}
+            className={`h-8 rounded-sm transition-all duration-200 hover:scale-105 ${
+              cell.value < 20 ? 'bg-primary/10' :
+              cell.value < 40 ? 'bg-primary/25' :
+              cell.value < 60 ? 'bg-primary/50' :
+              cell.value < 80 ? 'bg-primary/75' : 'bg-primary'
+            }`}
+            title={`${cell.label}: ${cell.value}%`}
+          />
         ))}
       </div>
     </div>
